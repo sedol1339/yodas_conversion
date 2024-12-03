@@ -53,11 +53,16 @@ if __name__ == '__main__':
     print(f'Probing the loaded dataset')
     next(iter(orig_dataset))  # a test
 
-    for shard_idx in range(orig_dataset.num_shards):
-        filepath = Path(f'{output_dir}/{shard_idx:05d}-of-{orig_dataset.num_shards:05d}.parquet')
+    try:
+        n_shards = orig_dataset.num_shards
+    except AttributeError:
+        n_shards = orig_dataset.n_shards
+
+    for shard_idx in range(n_shards):
+        filepath = Path(f'{output_dir}/{shard_idx:05d}-of-{n_shards:05d}.parquet')
         print(
             f'[{str(datetime.datetime.now())[:-7]}]'
-            f' shard {shard_idx}/{orig_dataset.num_shards}'
+            f' shard {shard_idx}/{n_shards}'
             f' {filepath}'
         )
         if filepath.is_file():
@@ -66,7 +71,7 @@ if __name__ == '__main__':
         start_time = time.time()
         iterable_source: IterableDataset = (
             orig_dataset
-            .shard(num_shards=orig_dataset.num_shards, index=shard_idx)
+            .shard(num_shards=n_shards, index=shard_idx)
             .cast_column('audio', Audio(decode=False))
             .map(map_to_mp3, fn_kwargs={'bitrate': args.bitrate})
             ._resolve_features()
