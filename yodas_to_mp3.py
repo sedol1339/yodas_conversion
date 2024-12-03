@@ -53,10 +53,7 @@ if __name__ == '__main__':
     print(f'Probing the loaded dataset')
     next(iter(orig_dataset))  # a test
 
-    try:
-        n_shards = orig_dataset.num_shards
-    except AttributeError:
-        n_shards = orig_dataset.n_shards
+    n_shards = orig_dataset.num_shards
 
     for shard_idx in range(n_shards):
         filepath = Path(f'{output_dir}/{shard_idx:05d}-of-{n_shards:05d}.parquet')
