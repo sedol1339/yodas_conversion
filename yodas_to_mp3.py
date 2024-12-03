@@ -14,6 +14,9 @@ from tqdm.auto import tqdm
 '''
 Example:
 python yodas_to_mp3.py -i espnet/yodas -n ru000 -r 32k
+
+1) need to install ffmpeg
+2) accidentally errors with FileNotFoundError ... /00000000.txt", just re-run the script
 '''
 
 def map_to_mp3(sample: dict[str, Any], bitrate: str = '32k') -> dict[str, Any]:
