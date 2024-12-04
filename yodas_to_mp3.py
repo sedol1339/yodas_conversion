@@ -38,6 +38,7 @@ if __name__ == '__main__':
     parser.add_argument('-n','--input_name', default='ru000')
     parser.add_argument('-r','--bitrate', default='32k')
     parser.add_argument('-o','--output_dir', required=False)
+    parser.add_argument('-s','--audio_separately', action='store_true')
     args = parser.parse_args()
 
     output_dir = (
@@ -65,10 +66,13 @@ if __name__ == '__main__':
             f' shard {shard_idx}/{n_shards}'
             f' {filepath}'
         )
+
         if filepath.is_file():
             print('Already exists')
             continue
+        
         start_time = time.time()
+
         iterable_source: IterableDataset = (
             orig_dataset
             .shard(num_shards=n_shards, index=shard_idx)
@@ -76,8 +80,21 @@ if __name__ == '__main__':
             .map(map_to_mp3, fn_kwargs={'bitrate': args.bitrate})
             ._resolve_features()
         )
-        collected_results = Dataset.from_list(list(tqdm(iterable_source)))  # should fit in RAM
-        collected_results.to_parquet(filepath)
+
+        collected_results = list(tqdm(iterable_source))  # should fit in RAM
+        
+        if args.audio_separately:
+            assert args.input_dataset == 'espnet/yodas2'
+            for sample_idx, sample in enumerate(collected_results):
+                audio_path = Path(f'{output_dir}/audio/{sample["video_id"]}.mp3')
+                audio_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(audio_path, 'wb') as f:
+                    f.write(sample['audio']['bytes'])
+                del sample['audio']['bytes']
+                sample['audio']['path'] = str(audio_path)
+            print(f'Saved {len(collected_results)} mp3 files separately')
+        
+        Dataset.from_list(collected_results).to_parquet(filepath)
         print(
             f'Elapsed {time.time() - start_time:.0f} sec'
             f', saved {filepath.stat().st_size / 1024 ** 2:.1f} MB'
