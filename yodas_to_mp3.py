@@ -6,7 +6,9 @@ from urllib3.connection import HTTPConnection
 from typing import Any
 import datetime
 import time
+import shutil
 
+import datasets
 from datasets import Audio, Dataset, load_dataset, IterableDataset
 from pydub import AudioSegment
 from tqdm.auto import tqdm
@@ -39,12 +41,22 @@ if __name__ == '__main__':
     parser.add_argument('-r','--bitrate', default='32k')
     parser.add_argument('-o','--output_dir', required=False)
     parser.add_argument('-s','--audio_separately', action='store_true')
+    parser.add_argument('-f','--flush', action='store_true')
+
     args = parser.parse_args()
 
     output_dir = (
         args.output_dir
         or f'{args.input_dataset.split("/")[-1]}_{args.input_name}_{args.bitrate}'
     )
+
+    if args.flush:
+        # fixing a weird bug "No such file or directory ... 00000000.txt"
+        # originating probably from the YODAS code
+        shutil.rmtree(
+            Path(datasets.config.HF_CACHE_HOME)
+            / 'modules/datasets_modules/datasets/espnet--yodas'
+        )
 
     print(f'Loading {args.input_dataset} {args.input_name}')
     orig_dataset: IterableDataset = load_dataset(
