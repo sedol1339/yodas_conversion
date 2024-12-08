@@ -14,11 +14,8 @@ from pydub import AudioSegment
 from tqdm.auto import tqdm
 
 '''
-Example:
+Example (need to install ffmpeg):
 python yodas_to_mp3.py -i espnet/yodas -n ru000 -r 32k
-
-1) need to install ffmpeg
-2) accidentally errors with FileNotFoundError ... /00000000.txt", just re-run the script
 '''
 
 def map_to_mp3(sample: dict[str, Any], bitrate: str = '32k') -> dict[str, Any]:
@@ -36,12 +33,12 @@ if __name__ == '__main__':
         ])
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i','--input_dataset', default='espnet/yodas')
-    parser.add_argument('-n','--input_name', default='ru000')
-    parser.add_argument('-r','--bitrate', default='32k')
-    parser.add_argument('-o','--output_dir', required=False)
-    parser.add_argument('-s','--audio_separately', action='store_true')
-    parser.add_argument('-f','--flush', action='store_true')
+    parser.add_argument('-i', '--input_dataset', default='espnet/yodas')
+    parser.add_argument('-n', '--input_name', default='ru000')
+    parser.add_argument('-r', '--bitrate', default='32k')
+    parser.add_argument('-o', '--output_dir', required=False)
+    parser.add_argument('-s', '--audio_separately', action='store_true')
+    parser.add_argument('-f', '--flush', action='store_true')
 
     args = parser.parse_args()
 
@@ -55,7 +52,8 @@ if __name__ == '__main__':
         # originating probably from the YODAS code
         shutil.rmtree(
             Path(datasets.config.HF_CACHE_HOME)
-            / 'modules/datasets_modules/datasets/espnet--yodas'
+            / 'modules/datasets_modules/datasets/espnet--yodas',
+            ignore_errors=True,
         )
 
     print(f'Loading {args.input_dataset} {args.input_name}')
@@ -98,15 +96,18 @@ if __name__ == '__main__':
         if args.audio_separately:
             assert args.input_dataset == 'espnet/yodas2'
             for sample_idx, sample in enumerate(collected_results):
-                audio_path = Path(f'{output_dir}/audio/{sample["video_id"]}.mp3')
+                rel_audio_path = Path(f'audio/{sample["video_id"]}.mp3')
+                audio_path = output_dir / rel_audio_path
                 audio_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(audio_path, 'wb') as f:
                     f.write(sample['audio']['bytes'])
-                del sample['audio']['bytes']
-                sample['audio']['path'] = str(audio_path)
+                sample['audio'] = {'path': str(rel_audio_path)}
             print(f'Saved {len(collected_results)} mp3 files separately')
         
-        Dataset.from_list(collected_results).to_parquet(filepath)
+
+        Dataset.from_list(collected_results).to_parquet(tmp_path := filepath.with_stem('tmp'))
+        tmp_path.rename(filepath)  # to prevent truncated parquet files
+
         print(
             f'Elapsed {time.time() - start_time:.0f} sec'
             f', saved {filepath.stat().st_size / 1024 ** 2:.1f} MB'
