@@ -14,5 +14,5 @@ python yodas_length_histogram.py -i yodas_ru000_16k -o yodas_ru000_lengths.png
 
 # YODAS filtering
 screen -S yodas_ru000_16k_f -d -m python yodas_filter.py -i yodas_ru000_16k -o yodas_ru000_16k_filtered --min_len 1 --max_len 30
-screen -S yodas_ru000_32k_f -d -m python yodas_filter.py -i yodas_ru000_16k -o yodas_ru000_32k_filtered --min_len 1 --max_len 30
-screen -S yodas_ru000_128k_f -d -m python yodas_filter.py -i yodas_ru000_16k -o yodas_ru000_128k_filtered --min_len 1 --max_len 30
+screen -S yodas_ru000_32k_f -d -m python yodas_filter.py -i yodas_ru000_32k -o yodas_ru000_32k_filtered --min_len 1 --max_len 30
+screen -S yodas_ru000_128k_f -d -m python yodas_filter.py -i yodas_ru000_128k -o yodas_ru000_128k_filtered --min_len 1 --max_len 30
