@@ -57,6 +57,6 @@ if __name__ == '__main__':
     n_output_shards = int(len(filtered_dataset) / 20_000) + 1
 
     for shard_idx in range(n_output_shards):
-        output_path = f'yodas_ru000_16k_filtered/{shard_idx:05d}-of-{n_output_shards:05d}.parquet'
+        output_path = f'{output_dir}/{shard_idx:05d}-of-{n_output_shards:05d}.parquet'
         print(f'Writing {output_path}')
         filtered_dataset.shard(num_shards=n_output_shards, index=shard_idx).to_parquet(output_path)
