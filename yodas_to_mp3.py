@@ -13,15 +13,12 @@ from datasets import Audio, Dataset, load_dataset, IterableDataset
 from pydub import AudioSegment
 from tqdm.auto import tqdm
 
-'''
-Example (need to install ffmpeg):
-python yodas_to_mp3.py -i espnet/yodas -n ru000 -r 32k
-'''
 
 def map_to_mp3(sample: dict[str, Any], bitrate: str = '32k') -> dict[str, Any]:
     audio = AudioSegment.from_file(io.BytesIO(sample['audio']['bytes']))
     audio.export(buffer := io.BytesIO(), format='mp3', bitrate=bitrate)
     return {'audio': {'bytes': buffer.read()}}
+
 
 if __name__ == '__main__':
     # fixing Huggingface "read timeout" issue
