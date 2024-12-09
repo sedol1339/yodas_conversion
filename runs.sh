@@ -10,7 +10,7 @@ do
 done
 
 # YODAS histogram
-python len_hist.py -i yodas_ru000_16k -o yodas_ru000_lengths.png
+python yodas_length_histogram.py -i yodas_ru000_16k -o yodas_ru000_lengths.png
 
 # YODAS filtering
 screen -S yodas_ru000_16k_f -d -m python yodas_filter.py -i yodas_ru000_16k -o yodas_ru000_16k_filtered --min_len 1 --max_len 30

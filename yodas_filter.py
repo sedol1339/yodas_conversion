@@ -1,7 +1,6 @@
 import io
 import argparse
-import datetime
-import time
+import shutil
 from typing import Any
 from pathlib import Path
 
@@ -29,6 +28,7 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output_dir')
     parser.add_argument('--min_len', default=1)
     parser.add_argument('--max_len', default=30)
+    parser.add_argument('--no_shuffle', action='store_true')
 
     args = parser.parse_args()
 
@@ -37,31 +37,26 @@ if __name__ == '__main__':
     min_len = float(args.min_len)
     max_len = float(args.max_len)
 
-    for filepath in sorted(input_dir.glob('*.parquet')):
-        output_filepath = output_dir / filepath.name
-        print(
-            f'[{str(datetime.datetime.now())[:-7]}]'
-            f' {filepath} -> {output_filepath}'
-        )
+    shutil.rmtree(output_dir, ignore_errors=True)
 
-        if output_filepath.is_file():
-            print('Already exists')
-            continue
+    dataset = (
+        load_dataset(str(input_dir), split='train')
+        .cast_column('audio', Audio(decode=False))
+    )
 
-        
-        start_time = time.time()
+    filtered_dataset = (
+        dataset.filter(filter, fn_kwargs={'min_len': min_len, 'max_len': max_len})
+    )
 
-        dataset = (
-            load_dataset(str(input_dir), data_files=[filepath.name], split='train')
-            .cast_column('audio', Audio(decode=False))
-        )
+    if not args.no_shuffle:
+        filtered_dataset = filtered_dataset.shuffle(seed=0)
 
-        filtered_dataset = (
-            dataset.filter(filter, fn_kwargs={'min_len': min_len, 'max_len': max_len})
-        )
+    removed_ratio = 1 - len(filtered_dataset) / len(dataset)
+    print(f'Filtered out {removed_ratio*100:.2f}% of {len(dataset)} samples')
 
-        removed_ratio = 1 - len(filtered_dataset) / len(dataset)
-        print(f'Filtered out {removed_ratio*100:.2f}% of {len(dataset)} samples')
+    n_output_shards = int(len(filtered_dataset) / 20_000) + 1
 
-        filtered_dataset.to_parquet(tmp_path := output_filepath.with_stem('tmp'))
-        tmp_path.rename(output_filepath)  # to prevent truncated parquet files
+    for shard_idx in range(n_output_shards):
+        output_path = f'yodas_ru000_16k_filtered/{shard_idx:05d}-of-{n_output_shards:05d}.parquet'
+        print(f'Writing {output_path}')
+        filtered_dataset.shard(num_shards=n_output_shards, index=shard_idx).to_parquet(output_path)
