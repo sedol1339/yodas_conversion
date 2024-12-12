@@ -1,6 +1,7 @@
 import io
 import argparse
 from pathlib import Path
+import pickle
 import socket
 from urllib3.connection import HTTPConnection
 from typing import Any
@@ -12,12 +13,9 @@ import datasets
 from datasets import Audio, Dataset, load_dataset, IterableDataset
 from pydub import AudioSegment
 from tqdm.auto import tqdm
+import librosa
 
-
-def map_to_mp3(sample: dict[str, Any], bitrate: str = '32k') -> dict[str, Any]:
-    audio = AudioSegment.from_file(io.BytesIO(sample['audio']['bytes']))
-    audio.export(buffer := io.BytesIO(), format='mp3', bitrate=bitrate)
-    return {'audio': {'bytes': buffer.read()}}
+from spectrogram_transformer import AudioSpectrogramTransformer
 
 
 if __name__ == '__main__':
@@ -36,6 +34,11 @@ if __name__ == '__main__':
     parser.add_argument('-o', '--output_dir', required=False)
     parser.add_argument('-s', '--audio_separately', action='store_true')
     parser.add_argument('-f', '--flush', action='store_true')
+    parser.add_argument('--ast', action='store_true')
+    parser.add_argument('--ast_batch_size', default=256)
+    parser.add_argument('--ast_segment_length', default=10)
+    parser.add_argument('--ast_segment_shift', default=5)
+    parser.add_argument('--ast_min_length', default=1)
 
     args = parser.parse_args()
 
@@ -52,6 +55,11 @@ if __name__ == '__main__':
             / 'modules/datasets_modules/datasets/espnet--yodas',
             ignore_errors=True,
         )
+        shutil.rmtree(
+            Path(datasets.config.HF_CACHE_HOME)
+            / 'modules/datasets_modules/datasets/espnet--yodas2',
+            ignore_errors=True,
+        )
 
     print(f'Loading {args.input_dataset} {args.input_name}')
     orig_dataset: IterableDataset = load_dataset(
@@ -64,9 +72,13 @@ if __name__ == '__main__':
     print(f'Probing the loaded dataset')
     next(iter(orig_dataset))  # a test
 
-    n_shards = orig_dataset.num_shards
+    if args.ast:
+        ast = AudioSpectrogramTransformer()
+        if args.input_dataset != 'espnet/yodas2':
+            print('Warning: currently batching in AST is not efficient for an already segmented dataset')
 
-    for shard_idx in range(n_shards):
+    for shard_idx in range(n_shards := orig_dataset.num_shards):
+
         filepath = Path(f'{output_dir}/{shard_idx:05d}-of-{n_shards:05d}.parquet')
         print(
             f'[{str(datetime.datetime.now())[:-7]}]'
@@ -84,23 +96,46 @@ if __name__ == '__main__':
             orig_dataset
             .shard(num_shards=n_shards, index=shard_idx)
             .cast_column('audio', Audio(decode=False))
-            .map(map_to_mp3, fn_kwargs={'bitrate': args.bitrate})
-            ._resolve_features()
         )
 
-        collected_results = list(tqdm(iterable_source))  # should fit in RAM
-        
-        if args.audio_separately:
-            assert args.input_dataset == 'espnet/yodas2'
-            for sample_idx, sample in enumerate(collected_results):
+        collected_results = []
+        for sample_idx, sample in enumerate(tqdm(iterable_source)):
+            sample = dict(**sample)  # otherwise it does not work for some reason
+            orig_bytes = sample['audio']['bytes']
+            # to mp3
+            audio = AudioSegment.from_file(io.BytesIO(orig_bytes))
+            audio.export(buffer := io.BytesIO(), format='mp3', bitrate=args.bitrate)
+            mp3_bytes = buffer.read()
+            
+            if args.audio_separately:
+                assert args.input_dataset == 'espnet/yodas2'
                 rel_audio_path = Path(f'audio/{sample["video_id"]}.mp3')
                 audio_path = output_dir / rel_audio_path
                 audio_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(audio_path, 'wb') as f:
-                    f.write(sample['audio']['bytes'])
+                    f.write(mp3_bytes)
                 sample['audio'] = {'path': str(rel_audio_path)}
-            print(f'Saved {len(collected_results)} mp3 files separately')
-        
+            else:
+                sample['audio'] = {'bytes': mp3_bytes}
+
+            if args.ast:
+                # here we already have AudioSegment, but there is no documented and consistent
+                # with librosa way to convert it into waveform array
+                # do we need to use sr=16_000 with AST?
+                waveform, sr = librosa.load(io.BytesIO(orig_bytes), sr=16_000)
+                sample['ast'] = ast.predict_on_long_audio(
+                    waveform,
+                    batch_size=int(args.ast_batch_size),
+                    segment_length=int(args.ast_segment_length),
+                    segment_shift=int(args.ast_segment_shift),
+                    sampling_rate=sr,
+                    min_length=int(args.ast_min_length),
+                )
+            
+            collected_results.append(sample)
+
+        with open('collected_results.pkl', 'wb') as f:
+            pickle.dump(collected_results, f)
 
         Dataset.from_list(collected_results).to_parquet(tmp_path := filepath.with_stem('tmp'))
         tmp_path.rename(filepath)  # to prevent truncated parquet files

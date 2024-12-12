@@ -7,10 +7,7 @@ screen -S yodas_ru000_16k -d -m python yodas_to_mp3.py -i espnet/yodas -n ru000 
 screen -S sova_16k -d -m python sova_to_mp3.py -i /gdv_hdd/datasets/speech/sova/RuYouTube -r 16k
 
 # YODAS2 initial conversion
-for name in ru000 ru001 ru100 ru101 ru102 ru103 ru104 ru105 ru106
-do
-    screen -S yodas2_${name}_16k -d -m python yodas_to_mp3.py -i espnet/yodas2 -n ${name} -r 16k -s
-done
+screen -S yodas2_ru000_16k -d -m sh -c 'python yodas_to_mp3.py -i espnet/yodas2 -n ru000 -r 32k -s -f --ast; exec bash'
 
 # YODAS histogram
 python yodas_length_histogram.py -i yodas_ru000_16k -o yodas_ru000_lengths.png
