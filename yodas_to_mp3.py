@@ -4,10 +4,10 @@ from pathlib import Path
 import pickle
 import socket
 from urllib3.connection import HTTPConnection
-from typing import Any
 import datetime
 import time
 import shutil
+from dataclasses import asdict
 
 import datasets
 from datasets import Audio, Dataset, load_dataset, IterableDataset
@@ -15,7 +15,17 @@ from pydub import AudioSegment
 from tqdm.auto import tqdm
 import librosa
 
+from speaker_diarization import SpeakerDiarizationWrapper
 from spectrogram_transformer import AudioSpectrogramTransformer
+
+from time import perf_counter
+from contextlib import contextmanager
+
+@contextmanager
+def catchtime(name: str):
+    start = perf_counter()
+    yield lambda: perf_counter() - start
+    print(f'{name}: {perf_counter() - start:.1f} seconds')
 
 
 if __name__ == '__main__':
@@ -39,6 +49,9 @@ if __name__ == '__main__':
     parser.add_argument('--ast_segment_length', default=10)
     parser.add_argument('--ast_segment_shift', default=5)
     parser.add_argument('--ast_min_length', default=1)
+    parser.add_argument('--diarization', action='store_true')
+    parser.add_argument('--diarization_segmentation_batch_size', default=256)
+    parser.add_argument('--diarization_embedding_batch_size', default=128)
 
     args = parser.parse_args()
 
@@ -74,8 +87,18 @@ if __name__ == '__main__':
 
     if args.ast:
         ast = AudioSpectrogramTransformer()
-        if args.input_dataset != 'espnet/yodas2':
-            print('Warning: currently batching in AST is not efficient for an already segmented dataset')
+    
+    if args.diarization:
+        speaker_diarization = SpeakerDiarizationWrapper(
+            segmentation_batch_size=args.diarization_segmentation_batch_size,
+            embedding_batch_size=args.diarization_embedding_batch_size
+        )
+    
+    if (
+        (args.ast or args.diarization)
+        and args.input_dataset != 'espnet/yodas2'
+    ):
+        print('Warning: currently batching in AST or diarization is not efficient for an already segmented dataset')
 
     for shard_idx in range(n_shards := orig_dataset.num_shards):
 
@@ -99,13 +122,15 @@ if __name__ == '__main__':
         )
 
         collected_results = []
-        for sample_idx, sample in enumerate(tqdm(iterable_source)):
+        for sample_idx, sample in enumerate(iterable_source):
+            print(f'Sample {sample_idx}')
             sample = dict(**sample)  # otherwise it does not work for some reason
             orig_bytes = sample['audio']['bytes']
             # to mp3
-            audio = AudioSegment.from_file(io.BytesIO(orig_bytes))
-            audio.export(buffer := io.BytesIO(), format='mp3', bitrate=args.bitrate)
-            mp3_bytes = buffer.read()
+            with catchtime('\tConverting to mp3 bytes'):
+                audio = AudioSegment.from_file(io.BytesIO(orig_bytes))
+                audio.export(buffer := io.BytesIO(), format='mp3', bitrate=args.bitrate)
+                mp3_bytes = buffer.read()
             
             if args.audio_separately:
                 assert args.input_dataset == 'espnet/yodas2'
@@ -118,27 +143,42 @@ if __name__ == '__main__':
             else:
                 sample['audio'] = {'bytes': mp3_bytes}
 
-            if args.ast:
-                # here we already have AudioSegment, but there is no documented and consistent
-                # with librosa way to convert it into waveform array
-                # do we need to use sr=16_000 with AST?
-                waveform, sr = librosa.load(io.BytesIO(orig_bytes), sr=16_000)
-                sample['ast'] = ast.predict_on_long_audio(
-                    waveform,
-                    batch_size=int(args.ast_batch_size),
-                    segment_length=int(args.ast_segment_length),
-                    segment_shift=int(args.ast_segment_shift),
-                    sampling_rate=sr,
-                    min_length=int(args.ast_min_length),
-                )
+            if args.ast or args.diarization:
+                with catchtime('\tLoading wav bytes'):
+                    # here we already have AudioSegment, but there is no documented and consistent
+                    # with librosa way to convert it into waveform array
+                    # do we need to use sr=16_000 with AST?
+                    waveform, sr = librosa.load(io.BytesIO(orig_bytes), sr=16_000)
+                
+                print(f'\tAudio length: {len(waveform) / sr:.1f} sec')
+
+                if args.ast:
+                    with catchtime('\tAST'):
+                        sample['ast'] = ast.predict_on_long_audio(
+                            waveform,
+                            batch_size=int(args.ast_batch_size),
+                            segment_length=int(args.ast_segment_length),
+                            segment_shift=int(args.ast_segment_shift),
+                            sampling_rate=sr,
+                            min_length=int(args.ast_min_length),
+                        )
+                
+                if args.diarization:
+                    with catchtime('\tDiarization'):
+                        diarization_results = asdict(speaker_diarization.predict_on_long_audio(
+                            waveform, sampling_rate=sr
+                        ))
+                        sample['segments'] = diarization_results['segments']
+                        sample['speaker_embeddings'] = diarization_results['speaker_embeddings']
             
             collected_results.append(sample)
 
-        with open('collected_results.pkl', 'wb') as f:
-            pickle.dump(collected_results, f)
+        # with open('collected_results.pkl', 'wb') as f:
+        #     pickle.dump(collected_results, f)
 
-        Dataset.from_list(collected_results).to_parquet(tmp_path := filepath.with_stem('tmp'))
-        tmp_path.rename(filepath)  # to prevent truncated parquet files
+        with catchtime('Saving parquet'):
+            Dataset.from_list(collected_results).to_parquet(tmp_path := filepath.with_stem('tmp'))
+            tmp_path.rename(filepath)  # to prevent truncated parquet files
 
         print(
             f'Elapsed {time.time() - start_time:.0f} sec'
