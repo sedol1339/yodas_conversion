@@ -8,6 +8,7 @@ screen -S sova_16k -d -m python sova_to_mp3.py -i /gdv_hdd/datasets/speech/sova/
 
 # YODAS2 initial conversion
 screen -S yodas2_ru000_16k -d -m sh -c 'python yodas_to_mp3.py -i espnet/yodas2 -n ru000 -r 32k -s -f --ast --diarization; exec bash'
+screen -S yodas2_ru001_16k -d -m sh -c 'python yodas_to_mp3.py -i espnet/yodas2 -n ru001 -r 32k -s -f --ast --diarization; exec bash'
 
 # YODAS histogram
 python yodas_length_histogram.py -i yodas_ru000_16k -o yodas_ru000_lengths.png
