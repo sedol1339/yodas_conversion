@@ -1,0 +1,10 @@
+datasets>=3.1.0
+librosa
+soundfile
+pydub
+matplotlib
+ipykernel
+ipywidgets
+pickleshare
+openpyxl
+pyannote.audio

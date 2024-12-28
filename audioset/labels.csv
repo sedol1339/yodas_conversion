@@ -1,0 +1,528 @@
+label,ru
+Speech,Речь
+"Male speech, man speaking","Мужская речь, речь мужчины"
+"Female speech, woman speaking","Женская речь, речь женщины"
+"Child speech, kid speaking","Детская речь, речь ребенка"
+Conversation,Разговор
+"Narration, monologue","Повествование, монолог"
+Babbling,Лепет
+Speech synthesizer,Речевой синтезатор
+Shout,Крик
+Bellow,Рев
+Whoop,Вопль
+Yell,Вопль
+Battle cry,Боевой клич
+Children shouting,Детские крики
+Screaming,Вопль
+Whispering,Шепот
+Laughter,Смех
+Baby laughter,Детский смех
+Giggle,Хихикание
+Snicker,Хихикание
+Belly laugh,Хохот
+"Chuckle, chortle","Хихикание, хихиканье"
+"Crying, sobbing","Плач, всхлипывание"
+"Baby cry, infant cry","Детский плач, младенческий плач"
+Whimper,Хныканье
+"Wail, moan","Вопль, стон"
+Sigh,Вздох
+Singing,Пение
+Choir,Хор
+Yodeling,Йодль
+Chant,Распев
+Mantra,Мантра
+Male singing,Мужское пение
+Female singing,Женское пение
+Child singing,Детское пение
+Synthetic singing,Синтетическое пение
+Rapping,Рэп
+Humming,Жужжание
+Groan,Стон
+Grunt,Хрюканье
+Whistling,Свист
+Breathing,Дыхание
+Wheeze,Хрип
+Snoring,Храп
+Gasp,Вздох
+Pant,Пыхтение
+Snort,Фырканье
+Cough,Кашель
+Throat clearing,Прочистка горла
+Sneeze,Чихание
+Sniff,Нюхание
+Run,Бег
+Shuffle,Шаффл
+"Walk, footsteps","Ходьба, шаги"
+"Chewing, mastication","Жевание, пережевывание"
+Biting,Кусание
+Gargling,Бульканье
+Stomach rumble,Ураган в животе
+"Burping, eructation","Отрыжка, срыгивание"
+Hiccup,Икота
+Fart,Пердеж
+Hands,Руки
+Finger snapping,Щелканье пальцами
+Clapping,Хлопки
+"Heart sounds, heartbeat","Сердечные тоны, сердцебиение"
+Heart murmur,Шум в сердце
+Cheering,Аплодисменты
+Applause,Аплодисменты
+Chatter,Болтовня
+Crowd,Толпа
+"Hubbub, speech noise, speech babble","Гумор, речевой шум, речевой лепет"
+Children playing,Дети играют
+Animal,Животное
+"Domestic animals, pets","Домашние животные, питомцы"
+Dog,Собака
+Bark,Лай
+Yip,Вай
+Howl,Вой
+Bow-wow,Гав-гав
+Growling,Рычание
+Whimper (dog),Скуление (собака)
+Cat,Кошка
+Purr,Мурлыканье
+Meow,Мяу
+Hiss,Шипение
+Caterwaul,Кошачий вой
+"Livestock, farm animals, working animals","Скот, сельскохозяйственные животные, рабочие животные"
+Horse,Лошадь
+Clip-clop,Клип-клоп
+"Neigh, whinny","Ржание, ржание"
+"Cattle, bovinae","Крупный рогатый скот, коровы"
+Moo,Мычание
+Cowbell,Колокольчик коровы
+Pig,Свинья
+Oink,Хрюканье
+Goat,Коза
+Bleat,Блеяние
+Sheep,Овца
+Fowl,Птица
+"Chicken, rooster","Курица, петух"
+Cluck,Куда-ку
+"Crowing, cock-a-doodle-doo",Кукареку
+Turkey,Индейка
+Gobble,Индюк
+Duck,Утка
+Quack,Кряк
+Goose,Гусь
+Honk,Гогот
+Wild animals,Дикие животные
+"Roaring cats (lions, tigers)","Рычащие кошки (львы, тигры)"
+Roar,Рев
+Bird,Птица
+"Bird vocalization, bird call, bird song","Вокализация птиц, птичий зов, птичья песня"
+"Chirp, tweet","Щебет, чириканье"
+Squawk,Пронзительный крик
+"Pigeon, dove","Голубь, горлица"
+Coo,Воркование
+Crow,Ворона
+Caw,Карканье
+Owl,Сова
+Hoot,Уханье
+"Bird flight, flapping wings","Полет птиц, хлопанье крыльев"
+"Canidae, dogs, wolves","Псовые, собаки, волки"
+"Rodents, rats, mice","Грызуны, крысы, мыши"
+Mouse,Мышь
+Patter,Скороговорка
+Insect,Насекомое
+Cricket,Сверчок
+Mosquito,Комар
+"Fly, housefly","Муха, муха"
+Buzz,Жужжание
+"Bee, wasp, etc.","Пчела, оса и т. д."
+Frog,Лягушка
+Croak,Кваканье
+Snake,Змея
+Rattle,Погремушка
+Whale vocalization,Вокализация китов
+Music,Музыка
+Musical instrument,Музыкальный инструмент
+Plucked string instrument,Струнный щипковый инструмент
+Guitar,Гитара
+Electric guitar,Электрогитара
+Bass guitar,Бас-гитара
+Acoustic guitar,Акустическая гитара
+"Steel guitar, slide guitar","Стил-гитара, слайд-гитара"
+Tapping (guitar technique),Тэппинг (техника игры на гитаре)
+Strum,Струм
+Banjo,Банджо
+Sitar,Ситар
+Mandolin,Мандолина
+Zither,Цитра
+Ukulele,Укулеле
+Keyboard (musical),Клавиатура (музыкальная)
+Piano,Фортепиано
+Electric piano,Электропианино
+Organ,Орган
+Electronic organ,Электроорган
+Hammond organ,Орган Хаммонда
+Synthesizer,Синтезатор
+Sampler,Сэмплер
+Harpsichord,Клавесин
+Percussion,Ударные
+Drum kit,Установка ударных
+Drum machine,Драм-машина
+Drum,Барабан
+Snare drum,Малый барабан
+Rimshot,Римшот
+Drum roll,Барабанная дробь
+Bass drum,Бас-барабан
+Timpani,Литавры
+Tabla,Табла
+Cymbal,Тарелка
+Hi-hat,Хай-хэт
+Wood block,Деревянный блок
+Tambourine,Тамбурин
+Rattle (instrument),Погремушка (инструмент)
+Maraca,Маракас
+Gong,Гонг
+Tubular bells,Трубчатые колокольчики
+Mallet percussion,Маллетная перкуссия
+"Marimba, xylophone","Маримба, ксилофон"
+Glockenspiel,Глокеншпиль
+Vibraphone,Вибрафон
+Steelpan,Стилпан
+Orchestra,Оркестр
+Brass instrument,Духовой инструмент
+French horn,Валторна
+Trumpet,Труба
+Trombone,Тромбон
+Bowed string instrument,Струнный смычковый инструмент
+String section,Струнная секция
+"Violin, fiddle","Скрипка, фидель"
+Pizzicato,Пиццикато
+Cello,Виолончель
+Double bass,Контрабас
+"Wind instrument, woodwind instrument","Духовой инструмент, деревянный духовой инструмент"
+Flute,Флейта
+Saxophone,Саксофон
+Clarinet,Кларнет
+Harp,Арфа
+Bell,Колокол
+Church bell,Церковный колокол
+Jingle bell,Колокол-бубенчик
+Bicycle bell,Велосипедный колокол
+Tuning fork,Камертон
+Chime,Перезвон
+Wind chime,Перезвон ветра
+Change ringing (campanology),Изменение звона (кампания)
+Harmonica,Гармоника
+Accordion,Аккордеон
+Bagpipes,Волынки
+Didgeridoo,Диджериду
+Shofar,Шофар
+Theremin,Терменвокс
+Singing bowl,Поющая чаша
+Scratching (performance technique),Скретчинг (техника исполнения)
+Pop music,Поп-музыка
+Hip hop music,Хип-хоп-музыка
+Beatboxing,Битбоксинг
+Rock music,Рок-музыка
+Heavy metal,Тяжелый металл
+Punk rock,Панк-рок
+Grunge,Гранж
+Progressive rock,Прогрессивный рок
+Rock and roll,Рок-н-ролл
+Psychedelic rock,Психоделический рок
+Rhythm and blues,Ритм-н-блюз
+Soul music,Соул-музыка
+Reggae,Регги
+Country,Кантри
+Swing music,Свинг
+Bluegrass,Блюграсс
+Funk,Фанк
+Folk music,Фолк-музыка
+Middle Eastern music,Музыка Ближнего Востока
+Jazz,Джаз
+Disco,Диско
+Classical music,Классическая музыка
+Opera,Опера
+Electronic music,Электронная музыка
+House music,Хаус-музыка
+Techno,Техно
+Dubstep,Дабстеп
+Drum and bass,Драм-н-бэйс
+Electronica,Электроника
+Electronic dance music,Электронная танцевальная музыка
+Ambient music,Эмбиент-музыка
+Trance music,Транс-музыка
+Music of Latin America,Музыка Латинской Америки
+Salsa music,Сальса
+Flamenco,Фламенко
+Blues,Блюз
+Music for children,Музыка для детей
+New-age music,Нью-эйдж-музыка
+Vocal music,Вокальная музыка
+A capella,A capella
+Music of Africa,Музыка Африки
+Afrobeat,Афробит
+Christian music,Христианская музыка
+Gospel music,Госпел-музыка
+Music of Asia,Музыка Азии
+Carnatic music,Карнатик-музыка
+Music of Bollywood,Музыка Болливуда
+Ska,Ска
+Traditional music,Традиционная музыка
+Independent music,Независимая музыка
+Song,Песня
+Background music,Фоновая музыка
+Theme music,Тематическая музыка
+Jingle (music),Джингл (музыка)
+Soundtrack music,Музыка для саундтреков
+Lullaby,Колыбельная
+Video game music,Музыка для видеоигр
+Christmas music,Рождественская музыка
+Dance music,Танцевальная музыка
+Wedding music,Свадебная музыка
+Happy music,Веселая музыка
+Funny music,Веселая музыка
+Sad music,Грустная музыка
+Tender music,Нежная музыка
+Exciting music,Захватывающая музыка
+Angry music,Злая музыка
+Scary music,Страшная музыка
+Wind,Ветер
+Rustling leaves,Шелест листьев
+Wind noise (microphone),Шум ветра (микрофон)
+Thunderstorm,Гроза
+Thunder,Гром
+Water,Вода
+Rain,Дождь
+Raindrop,Капля дождя
+Rain on surface,Дождь на поверхности
+Stream,Ручей
+Waterfall,Водопад
+Ocean,Океан
+"Waves, surf","Волны, прибой"
+Steam,Пар
+Gurgling,Журчание
+Fire,Огонь
+Crackle,Трескать
+Vehicle,Транспорт
+"Boat, Water vehicle","Лодка, водное транспортное средство"
+"Sailboat, sailing ship","Парусная лодка, парусное судно"
+"Rowboat, canoe, kayak","Весельная лодка, каноэ, байдарка"
+"Motorboat, speedboat","Моторная лодка, катер"
+Ship,Корабль
+Motor vehicle (road),Моторное транспортное средство (дорога)
+Car,Автомобиль
+"Vehicle horn, car horn, honking","Автомобильный гудок, автомобильный гудок, гудение"
+Toot,Гудок
+Car alarm,Автомобильная сигнализация
+"Power windows, electric windows",Электрические стеклоподъемники
+Skidding,Занос
+Tire squeal,Визг шин
+Car passing by,Проезжающий автомобиль
+"Race car, auto racing","Гоночный автомобиль, автогонки"
+Truck,Грузовик
+Air brake,Пневматический тормоз
+"Air horn, truck horn","Пневматический гудок, гудок грузовика"
+Reversing beeps,Звуковые сигналы заднего хода
+"Ice cream truck, ice cream van","Грузовик с мороженым, фургон с мороженым"
+Bus,Автобус
+Emergency vehicle,Спасательная машина
+Police car (siren),Полицейская машина (сирена)
+Ambulance (siren),Скорая помощь (сирена)
+"Fire engine, fire truck (siren)","Пожарная машина, пожарная машина (сирена)"
+Motorcycle,Мотоцикл
+"Traffic noise, roadway noise","Шум транспорта, шум проезжей части"
+Rail transport,Железнодорожный транспорт
+Train,Поезд
+Train whistle,Свисток поезда
+Train horn,Гудок поезда
+"Railroad car, train wagon","Железнодорожный вагон, вагон поезда"
+Train wheels squealing,Визг колес поезда
+"Subway, metro, underground","Метро, ​​метрополитен"
+Aircraft,Самолет
+Aircraft engine,Авиационный двигатель
+Jet engine,Реактивный двигатель
+"Propeller, airscrew","Винт, воздушный винт"
+Helicopter,Вертолет
+"Fixed-wing aircraft, airplane","Самолет с неподвижным крылом, самолет"
+Bicycle,Велосипед
+Skateboard,Скейтборд
+Engine,Двигатель
+Light engine (high frequency),Легкий двигатель (высокая частота)
+"Dental drill, dentist's drill","Стоматологическая бормашина, бормашина"
+Lawn mower,Газонокосилка
+Chainsaw,Бензопила
+Medium engine (mid frequency),Средний двигатель (средняя частота)
+Heavy engine (low frequency),Тяжелый двигатель (низкая частота)
+Engine knocking,Стук двигателя
+Engine starting,Запуск двигателя
+Idling,Холостой ход
+"Accelerating, revving, vroom","Ускорение, обороты, вжух"
+Door,Дверь
+Doorbell,Дверной звонок
+Ding-dong,Динь-дон
+Sliding door,Раздвижная дверь
+Slam,Хлопок
+Knock,Стук
+Tap,Тап
+Squeak,Скрип
+Cupboard open or close,Открытие или закрытие шкафа
+Drawer open or close,Открытие или закрытие ящика
+"Dishes, pots, and pans","Посуда, кастрюли и сковородки"
+"Cutlery, silverware","Столовые приборы, столовое серебро"
+Chopping (food),Резка (еда)
+Frying (food),Жарка (еда)
+Microwave oven,Микроволновая печь
+Blender,Блендер
+"Water tap, faucet","Водопроводный кран, смеситель"
+Sink (filling or washing),Раковина (наполнение или мытье)
+Bathtub (filling or washing),Ванна (наполнение или мытье)
+Hair dryer,Фен
+Toilet flush,Смыв унитаза
+Toothbrush,Зубная щетка
+Electric toothbrush,Электрическая зубная щетка
+Vacuum cleaner,Пылесос
+Zipper (clothing),Молния (одежда)
+Keys jangling,Звон ключей
+Coin (dropping),Монета (падение)
+Scissors,Ножницы
+"Electric shaver, electric razor","Электробритва, электробритва"
+Shuffling cards,Перетасовка карт
+Typing,Печатание
+Typewriter,Пишущая машинка
+Computer keyboard,Клавиатура компьютера
+Writing,Письмо
+Alarm,Будильник
+Telephone,Телефон
+Telephone bell ringing,Звонок телефона
+Ringtone,Мелодия звонка
+"Telephone dialing, DTMF","Набор номера телефона, DTMF"
+Dial tone,Гудок
+Busy signal,Сигнал «занято»
+Alarm clock,Будильник
+Siren,Сирена
+Civil defense siren,Сирена гражданской обороны
+Buzzer,Зуммер
+"Smoke detector, smoke alarm","Детектор дыма, пожарная сигнализация"
+Fire alarm,Пожарная сигнализация
+Foghorn,Туманная сирена
+Whistle,Свисток
+Steam whistle,Паровой свисток
+Mechanisms,Механизмы
+"Ratchet, pawl","Храповик, собачка"
+Clock,Часы
+Tick,Тик
+Tick-tock,Тик-так
+Gears,Шестерни
+Pulleys,Шкивы
+Sewing machine,Швейная машина
+Mechanical fan,Механический вентилятор
+Air conditioning,Кондиционер
+Cash register,Кассовый аппарат
+Printer,Принтер
+Camera,Фотоаппарат
+Single-lens reflex camera,Однообъективный зеркальный фотоаппарат
+Tools,Инструменты
+Hammer,Молот
+Jackhammer,Отбойный молоток
+Sawing,Пиление
+Filing (rasp),Опиловка (рашпиль)
+Sanding,Шлифовка
+Power tool,Электроинструмент
+Drill,Дрель
+Explosion,Взрыв
+"Gunshot, gunfire","Выстрел, стрельба"
+Machine gun,Пулемет
+Fusillade,Расстрел
+Artillery fire,Артиллерийский огонь
+Cap gun,Пистолет-пулемет
+Fireworks,Фейерверк
+Firecracker,Петарда
+"Burst, pop","Взрыв, хлопок"
+Eruption,Извержение
+Boom,Бум
+Wood,Дерево
+Chop,Рубка
+Splinter,Осколок
+Crack,Треснуть
+Glass,Стекло
+"Chink, clink","Звон, звон"
+Shatter,Разбиться
+Liquid,Жидкость
+"Splash, splatter","Всплеск, брызги"
+Slosh,Хлюпанье
+Squish,Хлюпанье
+Drip,Капля
+Pour,Лить
+"Trickle, dribble","Струйка, капля"
+Gush,Хлыст
+Fill (with liquid),Заполнить (жидкостью)
+Spray,Распылить
+Pump (liquid),Насос (жидкость)
+Stir,Перемешать
+Boiling,Кипение
+Sonar,Сонар
+Arrow,Стрела
+"Whoosh, swoosh, swish",Свист
+"Thump, thud","Стук, стук"
+Thunk,Танц
+Electronic tuner,Электронный тюнер
+Effects unit,Эффекты
+Chorus effect,Эффект хоруса
+Basketball bounce,Отскок баскетбольного мяча
+Bang,Банг
+"Slap, smack","Шлепок, шлепок"
+"Whack, thwack","Вжик, вжик"
+"Smash, crash","Разбить, крушение"
+Breaking,Разрушение
+Bouncing,Подпрыгивание
+Whip,Хлыст
+Flap,Лоскут
+Scratch,Царапина
+Scrape,Скрежет
+Rub,Терение
+Roll,Катание
+Crushing,Дробление
+"Crumpling, crinkling","Мятие, сморщивание"
+Tearing,Рваный
+"Beep, bleep","Бип, бип"
+Ping,Пинг
+Ding,Динг
+Clang,Лязг
+Squeal,Визг
+Creak,Скрип
+Rustle,Шорох
+Whir,Жужжание
+Clatter,Грохот
+Sizzle,Шипение
+Clicking,Щелчок
+Clickety-clack,Клик-клак
+Rumble,Грохот
+Plop,Шлепок
+"Jingle, tinkle","Звон, звон"
+Hum,Жужжание
+Zing,Звон
+Boing,Бой
+Crunch,Хруст
+Silence,Тишина
+Sine wave,Синусоида
+Harmonic,Гармоника
+Chirp tone,Чирикающий тон
+Sound effect,Звуковой эффект
+Pulse,Пульс
+"Inside, small room","Внутри, маленькая комната"
+"Inside, large room or hall","Внутри, большая комната или зал"
+"Inside, public space","Внутри, общественное место"
+"Outside, urban or manmade","На улице, в городе или искусственном месте"
+"Outside, rural or natural","На улице, в сельской местности или естественно"
+Reverberation,Реверберация
+Echo,Эхо
+Noise,Шум
+Environmental noise,Шум окружающей среды
+Static,Статика
+Mains hum,Гул сети
+Distortion,Искажение
+Sidetone,Собственный тон
+Cacophony,Какофония
+White noise,Белый шум
+Pink noise,Розовый шум
+Throbbing,Пульсация
+Vibration,Вибрация
+Television,Телевидение
+Radio,Радио
+Field recording,Полевая запись
