@@ -4,7 +4,10 @@ PYTHONPATH=. screen -S yodas_ru000_32k -d -m python scripts/yodas_to_mp3.py -i e
 PYTHONPATH=. screen -S yodas_ru000_16k -d -m python scripts/yodas_to_mp3.py -i espnet/yodas -n ru000 -r 16k
 
 # SOVA initial conversion
-PYTHONPATH=. screen -S sova_16k -d -m python scripts/sova_to_mp3.py -i /gdv_hdd/datasets/speech/sova/RuYouTube -r 16k
+PYTHONPATH=. screen -S sova_wav -d -m python scripts/sova_to_hf.py -i /gdv_hdd/datasets/speech/sova/RuYouTube -o sova
+
+# or:
+PYTHONPATH=. python scripts/sova_to_hf.py -i /gdv_hdd/datasets/speech/sova/RuYouTube -o sova > sova.out 2>&1 & disown
 
 # YODAS2 initial conversion
 PYTHONPATH=. screen -S yodas2_ru000_16k -d -m sh -c 'python scripts/yodas_to_mp3.py -i espnet/yodas2 -n ru000 -r 32k -s -f --ast --diarization --verbose; exec bash'
