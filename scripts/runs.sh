@@ -10,9 +10,9 @@ PYTHONPATH=. screen -S sova_wav -d -m python scripts/sova_to_hf.py -i /gdv_hdd/d
 PYTHONPATH=. python scripts/sova_to_hf.py -i /gdv_hdd/datasets/speech/sova/RuYouTube -o sova > sova.out 2>&1 & disown
 
 # YODAS2 initial conversion
-PYTHONPATH=. screen -S yodas2_ru000_16k -d -m sh -c 'python scripts/yodas_to_mp3.py -i espnet/yodas2 -n ru000 -r 32k -s -f --ast --diarization --verbose; exec bash'
-PYTHONPATH=. screen -S yodas2_ru001_16k -d -m sh -c 'python scripts/yodas_to_mp3.py -i espnet/yodas2 -n ru001 -r 32k -s -f --ast --diarization --verbose; exec bash'
-PYTHONPATH=. screen -S yodas2_ru100_16k -d -m sh -c 'python scripts/yodas_to_mp3.py -i espnet/yodas2 -n ru100 -r 32k -s -f --ast --diarization --verbose; exec bash'
+PYTHONPATH=. screen -S yodas2 -d -m sh -c 'for name in ru000 ru001 ru100 ru101; \
+do python scripts/map_dataset.py -i espnet/yodas2 -n ${name} -o datasets/yodas2_${name}_32k \
+--extract_audio --bitrate 32k --flush --ast --diarization --verbose ; done; exec bash'
 
 # YODAS histogram
 PYTHONPATH=. python scripts/length_histogram.py -i yodas_ru000_16k -o yodas_ru000_lengths.png
