@@ -44,6 +44,7 @@ if __name__ == '__main__':
     parser.add_argument('--diarization', action='store_true')
     parser.add_argument('--diarization_segmentation_batch_size', default=256)
     parser.add_argument('--diarization_embedding_batch_size', default=128)
+    parser.add_argument('--max_duration', required=False)
 
     args = parser.parse_args()
 
@@ -109,10 +110,17 @@ if __name__ == '__main__':
         collected_results = []
         for sample_idx, sample in enumerate(tqdm(source_dataset, disable=args.verbose)):
             if args.verbose:
-                print(f'Sample {sample_idx}')
+                if 'video_id' in sample:
+                    print(f'Sample {sample_idx} {sample["video_id"]}')
+                else:
+                    print(f'Sample {sample_idx}')
             sample = dict(**sample)  # otherwise it does not work for some reason
             orig_bytes = sample['audio']['bytes']
             # to mp3
+
+            if args.max_duration is not None and sample['duration'] > float(args.max_duration):
+                print(f'Skipping audio with duration {sample["duration"]}')
+                continue
             
             if args.extract_audio:
                 with catchtime('\tConverting to mp3 bytes', disable=not args.verbose):

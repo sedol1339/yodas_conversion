@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import io
 from pathlib import Path
@@ -72,6 +73,11 @@ class Features:
     delta_sec: float | None
     length_sec: float | None
 
+    def as_contiguous(self) -> Features:
+        # storing in F-order for fast feature-wise operations
+        self.data = np.ascontiguousarray(self.data.T).T
+        return self
+
     @classmethod
     def from_list(
         cls,
@@ -80,13 +86,9 @@ class Features:
         start_sec: float | None = 0,
         delta_sec: float | None = None,
         length_sec: float | None = None,
-        as_contiguous: bool = True,
     ) -> Features:
         sample_sizes = np.array([len(matrix) for matrix in features])
         data = np.concatenate(features, axis=0)
-        if as_contiguous:
-            # storing in F-order for fast feature-wise operations
-            data = np.ascontiguousarray(data.T).T
         return Features(
             data=data,
             labels=np.array(labels),
@@ -136,17 +138,11 @@ class Features:
         self,
         reduction: Literal['mean', 'max'] | Callable,
         sliding_window_size: int | None = None,
-        #csliding_window_size_sec: float | None = None,
+        #sliding_window_size_sec: float | None = None,
         preprocess_fn: Callable | None = None,
         pbar: bool = False,
+        pbar_desc: str = 'Reducing features',
     ) -> Features:
-        # if sliding_window_size_sec is not None:
-        #     assert sliding_window_size is None
-        #     sliding_window_size = round(
-        #         1 + (sliding_window_size_sec - self.length_sec) / self.delta_sec
-        #     )
-        #     print(f'Selecting sliding window size {sliding_window_size} steps')
-
         if sliding_window_size is not None:
             assert isinstance(reduction, str)
             reduction_fn = {
@@ -164,7 +160,7 @@ class Features:
         preprocess_fn = preprocess_fn or (lambda x: x)
 
         reduced_features_list: list[np.ndarray] = []
-        for arr in tqdm(list(self), disable=not pbar):
+        for arr in tqdm(list(self), disable=not pbar, desc=pbar_desc):
             if len(arr) == 0:
                 reduced = np.zeros((0, arr.shape[1]), dtype=arr.dtype)
             else:
@@ -193,8 +189,39 @@ class Features:
             **new_timings,
         )
 
+    def sparsify(self, times: int) -> Features:
+        return Features.from_list(
+            features=[arr[::times] for arr in list(self)],
+            labels=self.labels,
+            start_sec=self.start_sec,
+            length_sec=self.length_sec,
+            delta_sec=(
+                self.delta_sec * times
+                if self.delta_sec is not None
+                else None
+            ),
+        )
+
+    def select_feature_ids(self, ids: list[int]) -> Features:
+        result = copy.copy(self)
+        result.data = result.data[:, ids]
+        result.labels = result.labels[ids]
+        return result
+    
+    def transform(
+        self,
+        fn: Callable,
+        new_labels: list[str] | None = None,
+    ) -> Features:
+        result = copy.copy(self)
+        result.data = fn(result.data)
+        if new_labels is not None:
+            result.labels = new_labels
+        return result
+
 
 class AudioSetOnthology:
+
     def __init__(
         self,
         onthology_path: Path | str = 'audioset/audioset_ontology.json',
@@ -382,105 +409,61 @@ class AudioSetOnthology:
             and class_idx != class_idx2
         ]
     
-    
-def get_class_sets(onthology_path: Path | str):
-    '''
-    Features:
+    def get_class_sets(self) -> dict[str, list[int]]:
+        onthology = self
 
-    Filter out:
-        - In principle, many sounds can be transcribed by the model, for example "laughter", "hahaha", "[MUSIC]", "Cough" etc.
-        - A precisely-located ones can be annotated with a permissive annotation "{?}", however this is undesirable
-        - So this is better to skip some sound types like "Shout" that are likely to be transcribed
-        - Also, we may write a specific rules for a model by analyzing distrepancies between transcription and ground truth
-        - We still want to exclude music, since it is usually not precisely-located
-        max_t[Music/*, "Sine wave"/*, "Sound effect", Humming] > T_1
-        avg_t[Speech/*] < T_2
+        class_sets = {
+            'speech': onthology.with_subclasses('Speech'),
+            'child': ['Child speech, kid speaking'],
+            'whispering': ['Whispering'],
+            'conversation': ['Conversation'],
+            'music': [
+                *onthology.with_subclasses('Music'),
+                *onthology.with_subclasses('Sine wave'),
+                *onthology.with_subclasses('Sound effect'),
+                'Humming',
+            ],
+            'warnings': [
+                'Babbling',
+                *onthology.with_subclasses('Shout'),
+                *onthology.with_subclasses('Laughter'),
+                'Screaming',
+                'Crying, sobbing',
+                'Wail, moan',
+                'Groan',
+                'Whistling',
+                'Cough',
+                'Sneeze',
+            ],
+            'acoustic': [
+                *onthology.with_subclasses('Natural sounds'),
+                *onthology.with_subclasses('Noise'),
+                *onthology.with_subclasses('Sound reproduction'),
+                *onthology.with_subclasses('Animal'),
+                *onthology.with_subclasses('Acoustic environment'),
+                *onthology.with_subclasses('Sounds of things'),
+                *onthology.with_subclasses('Source-ambiguous sounds'),  # inclucing Silence
+                *onthology.with_subclasses('Human locomotion'),
+                *onthology.with_subclasses('Digestive'),
+                *onthology.with_subclasses('Hands'),
+                *onthology.with_subclasses('Heart sounds, heartbeat'),
+                *onthology.with_subclasses('Breathing'),
+                'Cheering',
+                'Applause',
+                'Crowd',
+                'Hubbub, speech noise, speech babble',
+                'Children playing',
+                'Grunt',
+                'Sigh',
+                'Sniff',
+                'Chatter',
+            ],
+        }
 
-    Warning:
-        - Do not exclude but warn with timings
-        max_t[Babbling, Shout/*, Laughter/*, Screaming, "Crying, sobbing", "Wail, moan", Groan, Whistling, Cough, Sneeze] > T_1
+        for name, labels in class_sets.items():
+            class_sets[name] = [self.labels.index(l) for l in labels if l in self.labels]
 
-    Undesirable but AST predictions are unreliable:
-        Speech synthesizer
-
-    To promote diversity (output ordering):
-        acoustic_embedding = avg_t[
-            "Sounds of things"/*, "Source-ambiguous sounds"/* (inclucing Silence), "Human locomotion"/*, Digestive/*, Hands/*,
-            "Heart sounds, heartbeat"/*, Cheering, Applause, Crowd, "Hubbub, speech noise, speech babble", "Children playing",
-            Grunt, Sigh, Breathing/*, Sniff, Chatter, "Natural sounds"/*, Noise/*, "Sound reproduction"/*,
-            Animal/*, "Acoustic environment"/*
-        ]
-        - We do not exclude music from these sets, since music filtering is another stage using max_t and not avg_t
-        - We do not include warning classes in this set
-        - Outputs will be ordered by their acoustic distance from already collected audios, and labeled with top acoustic classes
-        - TODO how to search for the most non-similar embeddings, considering acoustic_embedding covariation matrix
-
-    For additional manual search queries for underrepresented recording types:
-        avg_t["Child speech, kid speaking"]
-        avg_t[Whispering]
-        avg_t[Conversation]
-
-    Currently unused:
-        "Male speech, man speaking", "Female speech, woman speaking" (we better use speaker embeddings)
-
-    Diarization queries/output:
-        top_speaker_ratio
-        voice_overlap_seconds
-
-    Diarization output:
-        - top_speaker_embedding
-
-    AudioSet classes can also be used for subset analysis of a larger dataset, such as CommonVoice or Golos
-    '''
-    onthology = AudioSetOnthology(onthology_path=onthology_path)
-
-    return {
-        'speech': onthology.with_subclasses('Speech'),
-        'child': ['Child speech, kid speaking'],
-        'whispering': ['Whispering'],
-        'conversation': ['Conversation'],
-        'music': [
-            *onthology.with_subclasses('Music'),
-            *onthology.with_subclasses('Sine wave'),
-            *onthology.with_subclasses('Sound effect'),
-            'Humming',
-        ],
-        'warnings': [
-            'Babbling',
-            *onthology.with_subclasses('Shout'),
-            *onthology.with_subclasses('Laughter'),
-            'Screaming',
-            'Crying, sobbing',
-            'Wail, moan',
-            'Groan',
-            'Whistling',
-            'Cough',
-            'Sneeze',
-        ],
-        'acoustic': [
-            *onthology.with_subclasses('Natural sounds'),
-            *onthology.with_subclasses('Noise'),
-            *onthology.with_subclasses('Sound reproduction'),
-            *onthology.with_subclasses('Animal'),
-            *onthology.with_subclasses('Acoustic environment'),
-            *onthology.with_subclasses('Sounds of things'),
-            *onthology.with_subclasses('Source-ambiguous sounds'),  # inclucing Silence
-            *onthology.with_subclasses('Human locomotion'),
-            *onthology.with_subclasses('Digestive'),
-            *onthology.with_subclasses('Hands'),
-            *onthology.with_subclasses('Heart sounds, heartbeat'),
-            *onthology.with_subclasses('Breathing'),
-            'Cheering',
-            'Applause',
-            'Crowd',
-            'Hubbub, speech noise, speech babble',
-            'Children playing',
-            'Grunt',
-            'Sigh',
-            'Sniff',
-            'Chatter',
-        ],
-    }
+        return class_sets
 
 
 def pad_or_trim_to_len(arr: np.ndarray, length: int, value: float = np.nan):

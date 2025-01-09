@@ -7,8 +7,6 @@ import pandas as pd
 import torch
 import numpy as np
 
-from pyannote.audio.pipelines import SpeakerDiarization
-
 
 @dataclass
 class Segment:
@@ -30,6 +28,9 @@ class SpeakerDiarizationWrapper:
         segmentation_batch_size: int = 256,
         embedding_batch_size: int = 128,
     ):
+        # this will write in stdout
+        from pyannote.audio.pipelines import SpeakerDiarization
+
         self.pipeline = SpeakerDiarization(
             segmentation='pyannote/segmentation-3.0',
             segmentation_batch_size=segmentation_batch_size,
@@ -71,45 +72,44 @@ class SpeakerDiarizationWrapper:
             speaker_embeddings=speaker_embeddings.astype(np.float16)
         )
     
-    @staticmethod
-    def _reorder_speakers(
-        segments: list[Segment],
-        speaker_embeddings: np.ndarray,
-    ) -> tuple[list[Segment], np.ndarray]:
-        """
-        Assigns index 0 to the speaker with the longest total speech duration,
-        then index 1, and so on.
-        1) Returns same segments with new speaker ids (not inplace).
-        2) Reorders 'speaker_embeddings' field accordingly.
-        """
-        if len(segments) == 0:
-            return segments, speaker_embeddings
-        
-        speaker_durations = (  # <-- old speaker ids here
-            pd.DataFrame(segments)
-            .set_index('speaker_idx')
-            .assign(duration=lambda df: df.end - df.start)
-            .groupby('speaker_idx')['duration']
-            .sum()  # to series, total speech time for each speaker_idx
-            .sort_index()
-        )
-        speakers_new_ids = (
-            speaker_durations
-            .rank(method='first', ascending=False)
-            .astype(int)
-            .values  # to numpy array
-            - 1  # .rank() enumerates from 1, we need to enumerate from 0
-        )
-        segments = [
-            Segment(**asdict(s)) for s in segments
-        ]
-        for s in segments:
-            s.speaker_idx = speakers_new_ids[s.speaker_idx]
-        
-        reordering = np.argsort(speakers_new_ids)
-        speaker_embeddings = speaker_embeddings[reordering]
-
+def reorder_speakers(
+    segments: list[Segment],
+    speaker_embeddings: np.ndarray,
+) -> tuple[list[Segment], np.ndarray]:
+    """
+    Assigns index 0 to the speaker with the longest total speech duration,
+    then index 1, and so on.
+    1) Returns same segments with new speaker ids (not inplace).
+    2) Reorders 'speaker_embeddings' field accordingly.
+    """
+    if len(segments) == 0:
         return segments, speaker_embeddings
+    
+    speaker_durations = (  # <-- old speaker ids here
+        pd.DataFrame(segments)
+        .set_index('speaker_idx')
+        .assign(duration=lambda df: df.end - df.start)
+        .groupby('speaker_idx')['duration']
+        .sum()  # to series, total speech time for each speaker_idx
+        .sort_index()
+    )
+    speakers_new_ids = (
+        speaker_durations
+        .rank(method='first', ascending=False)
+        .astype(int)
+        .values  # to numpy array
+        - 1  # .rank() enumerates from 1, we need to enumerate from 0
+    )
+    segments = [
+        Segment(**asdict(s)) for s in segments
+    ]
+    for s in segments:
+        s.speaker_idx = speakers_new_ids[s.speaker_idx]
+    
+    reordering = np.argsort(speakers_new_ids)
+    speaker_embeddings = speaker_embeddings[reordering]
+
+    return segments, speaker_embeddings
 
 
 def test_reorder_speakers():
@@ -131,9 +131,7 @@ def test_reorder_speakers():
             Segment(start=6, end=7, speaker_idx=2),
     ]
     speaker_embeddings = np.array([[2], [1], [2], [9], [-10]])
-    segments, speaker_embeddings = (
-        SpeakerDiarizationWrapper._reorder_speakers(segments, speaker_embeddings)
-    )
+    segments, speaker_embeddings = reorder_speakers(segments, speaker_embeddings)
     assert [s.speaker_idx for s in segments] == [2, 1, 4, 1, 2, 0, 3, 1]
     assert (speaker_embeddings == np.array([[9], [2], [2], [-10], [1]])).all()
 
