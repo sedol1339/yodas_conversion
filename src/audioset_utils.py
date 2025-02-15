@@ -125,6 +125,7 @@ class Features:
 
     def __repr__(self) -> str:
         return (
+            'Features('
             f'{len(self.sample_sizes)} samples'
             f', shape {(self.data.shape)}'
             f', {self.data.dtype}'
@@ -132,6 +133,7 @@ class Features:
             f', start {self.start_sec} sec'
             f', delta {self.delta_sec} sec'
             f', length {self.length_sec} sec'
+            ')'
         )
     
     def reduce(
@@ -188,6 +190,21 @@ class Features:
             labels=self.labels,
             **new_timings,
         )
+    
+    def reduce_by_feature_axis(
+        self,
+        reduction: Literal['mean', 'max'] | Callable,
+        new_name: str = 'none',
+    ) -> Features:
+        if isinstance(reduction, str):
+            reduction = {
+                'mean': np.mean,
+                'max': np.max,
+            }[reduction]
+        result = copy.copy(self)
+        result.data = np.apply_along_axis(reduction, axis=1, arr=self.data)[:, None]
+        result.labels = [new_name]
+        return result
 
     def sparsify(self, times: int) -> Features:
         return Features.from_list(

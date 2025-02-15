@@ -19,6 +19,15 @@ class YodasSearchResult:
 class YodasSearch:
     """
     A class to provide results for search queries over the YODAS2 dataset. 
+    
+    <-->  SEGMENT_SHIFT
+    <----------------------->  SEGMENT_LENGTH
+    <--------------------------------------->  self.WINDOW_LENGTH
+    =========================                |
+        =========================            | segments count = self.SEGMENTS_IN_SLIDING_WINDOW
+            =========================        | (this value is primarly used in Features.reduce())
+                =========================    |
+                    =========================|
     """
     def __init__(
         self,
@@ -35,8 +44,8 @@ class YodasSearch:
         self.dataset = dataset
         self.onthology = onthology
         
-        self.sliding_window_size = round(1 + (120 - SEGMENT_LENGTH) / SEGMENT_SHIFT)
-        self.spans_sparsity_rate = 4
+        self.SEGMENTS_IN_SLIDING_WINDOW = round(1 + (120 - SEGMENT_LENGTH) / SEGMENT_SHIFT)
+        self.SPANS_SPARSITY_RATE = 4
         
         if (cache_file := Path(cache_file)).is_file() and not rewrite_cache:
             self._features = pickle.loads(cache_file.read_bytes())
@@ -44,11 +53,38 @@ class YodasSearch:
             self._features = self._calculate_features_for_dataset()
             cache_file.write_bytes(pickle.dumps(self._features))
     
+    @property
+    def WINDOW_LENGTH(self):
+        return (self.SEGMENTS_IN_SLIDING_WINDOW - 1) * SEGMENT_SHIFT + SEGMENT_LENGTH
+
     def search(
         self,
         selected_video_ids: list[str] | None = None,
     ) -> list[YodasSearchResult]:
         pass
+
+    def print_features(self):
+        print('Features:')
+        for feature_name, feature_values in self._features.items():
+            if isinstance(feature_values, np.ndarray):
+                if feature_values.dtype == object:
+                    values_repr = (
+                        f'ndarray('
+                        f'shape={feature_values.shape}'
+                        f', dtype={feature_values.dtype}'
+                        f', obj_type={type(feature_values[0]) if len(feature_values) else '(empty)'}'
+                        ')'
+                    )
+                else:
+                    values_repr = (
+                        f'ndarray('
+                        f'shape={feature_values.shape}'
+                        f', dtype={feature_values.dtype}'
+                        ')'
+                    )
+            else:
+                values_repr = feature_values
+            print(f'  {feature_name}\n    {values_repr}')
     
     def _calculate_features_init(self):
         self.class_sets = self.onthology.get_class_sets()
@@ -81,13 +117,13 @@ class YodasSearch:
             for_each_speaker=True
         )
 
-        step_size = SEGMENT_SHIFT * self.spans_sparsity_rate * tick_per_sec
-        window_size = self.sliding_window_size * SEGMENT_SHIFT * tick_per_sec
+        step_size = SEGMENT_SHIFT * self.SPANS_SPARSITY_RATE * tick_per_sec
+        window_size = self.WINDOW_LENGTH * tick_per_sec
 
         # to ensure that AST features (after calculating span mean/max and sparsifying)
         # and diarization features are of equal length
         n_steps = max(0, len(features['ast_probas'][
-            : - self.sliding_window_size + 1 : self.spans_sparsity_rate
+            : - self.SEGMENTS_IN_SLIDING_WINDOW + 1 : self.SPANS_SPARSITY_RATE
         ]))
 
         features['speech_seconds'] = []
@@ -120,6 +156,21 @@ class YodasSearch:
         return features
 
     def _calculate_features_for_dataset(self) -> list[str, np.ndarray | Features]:
+        """
+        Features:
+        - 'text'
+        - 'video_id' - unique id in YODAS2 ?
+        - 'duration'
+        - 'speaker_embeddings' (n_speakers, 192) for each video
+        - 'is_music' - 52553 samples, shape (1194474, 155), bool, 177 MB, start 0 sec, delta 20 sec, length 120 sec
+        - 'acoustic' - 52553 samples, shape (1194474, 366), bool, 417 MB, start 0 sec, delta 20 sec, length 120 sec
+        - 'warnings' - 52553 samples, shape (1194474, 21), bool, 24 MB, start 0 sec, delta 20 sec, length 120 sec
+        - 'for_manual_search' - 52553 samples, shape (1194474, 3), float32, 14 MB, start 0 sec, delta 20 sec, length 120 sec
+        - 'speech_seconds' - 52553 samples, shape (1194474,), float32, 5 MB, start 0 sec, delta 20 sec, length 115 sec
+        - 'voice_overlap_seconds' - 52553 samples, shape (1194474,), float32, 5 MB, start 0 sec, delta 20 sec, length 115 sec
+        - 'top_speaker_ratio' - 52553 samples, shape (1194474,), float32, 5 MB, start 0 sec, delta 20 sec, length 115 sec
+        - 'top_speaker_idx' - 52553 samples, shape (1194474, 1), int64, 9 MB, start 0 sec, delta 20 sec, length 115 sec
+        """
         self._calculate_features_init()
 
         features_list = self.dataset.map(
@@ -149,11 +200,12 @@ class YodasSearch:
             .select_feature_ids(self.class_sets['music'])
             .reduce(
                 reduction='max',
-                sliding_window_size=self.sliding_window_size,
+                sliding_window_size=self.SEGMENTS_IN_SLIDING_WINDOW,
                 pbar=True,
             )
-            .sparsify(times=self.spans_sparsity_rate)
+            .sparsify(times=self.SPANS_SPARSITY_RATE)
             .transform(lambda p: p > 0.3)
+            .reduce_by_feature_axis('max')
             .as_contiguous()
         )
 
@@ -162,10 +214,10 @@ class YodasSearch:
             .select_feature_ids(self.class_sets['acoustic'])
             .reduce(
                 reduction='mean',
-                sliding_window_size=self.sliding_window_size,
+                sliding_window_size=self.SEGMENTS_IN_SLIDING_WINDOW,
                 pbar=True,
             )
-            .sparsify(times=self.spans_sparsity_rate)
+            .sparsify(times=self.SPANS_SPARSITY_RATE)
             .transform(lambda p: (p > 0.1) | (p > np.quantile(p, 0.999, axis=0, keepdims=True)))
             .as_contiguous()
         )
@@ -175,10 +227,10 @@ class YodasSearch:
             .select_feature_ids(self.class_sets['warnings'] + [self.onthology.labels.index('Music')])
             .reduce(
                 reduction='max',
-                sliding_window_size=self.sliding_window_size,
+                sliding_window_size=self.SEGMENTS_IN_SLIDING_WINDOW,
                 pbar=True,
             )
-            .sparsify(times=self.spans_sparsity_rate)
+            .sparsify(times=self.SPANS_SPARSITY_RATE)
             .transform(lambda p: (p > 0.1) | (p > np.quantile(p, 0.99, axis=0, keepdims=True)))
             .as_contiguous()
         )
@@ -191,10 +243,10 @@ class YodasSearch:
             ])
             .reduce(
                 reduction='mean',
-                sliding_window_size=self.sliding_window_size,
+                sliding_window_size=self.SEGMENTS_IN_SLIDING_WINDOW,
                 pbar=True,
             )
-            .sparsify(times=self.spans_sparsity_rate)
+            .sparsify(times=self.SPANS_SPARSITY_RATE)
             .as_contiguous()
         )
 
@@ -204,11 +256,12 @@ class YodasSearch:
             'top_speaker_ratio',
             'top_speaker_idx'
         ]:
+            # features[name] = features_list.with_format('np')[name]
             features[name] = Features.from_list(
-                features=features_list.with_format('np')[name],
+                features=[x[:, None] for x in features_list.with_format('np')[name]],
                 labels=[name],
-                delta_sec=self.spans_sparsity_rate * SEGMENT_SHIFT,
-                length_sec=self.sliding_window_size * SEGMENT_SHIFT,
+                delta_sec=self.SPANS_SPARSITY_RATE * SEGMENT_SHIFT,
+                length_sec=self.WINDOW_LENGTH,
             ).as_contiguous()
         
         return features
